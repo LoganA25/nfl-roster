@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Roster</title>
+	<!-- link a style sheet -->
+    <link rel="stylesheet" href="./static/css/styles.css">
+	<!-- CSS only -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+	<!-- JavaScript Bundle with Popper -->
+	<script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-u1OknCvxWvY5kfmNBILK2hRnQC3Pr17a+RTT6rIHI7NnikvbZlHgTPOOmMi466C8" crossorigin="anonymous"></script>
+</head>
+<body>
+
+	<div id="main" class="container p-5">
+		<div class="container text-center">
+			<h1 class="header">NFL Team Roster</h1>
+		</div>
+		<!-- Content here -->
+		<select class="form-select" aria-label="Default select example">
+			<option selected>Select Team</option>
+		</select>
+		<div id="subMain" class="container" style="display:grid;" ></div>
+		<div class="d-flex flex-row-reverse mb-3 spinner-border text-dark mt-5 visually-hidden" role="status">
+		</div>
+	</div>
+
+	<!-- connect the javascript -->
+    <script src="./static/scripts/NFLApi.js"></script> <!-- has the class code in it -->
+    <script src="./static/scripts/HTMLGenerator.js"></script> <!-- has the class code in it -->
+
+    <script>
+		(async () => {
+			const season = "2022";
+			const select = document.querySelector(".form-select");
+			const subMain = document.querySelector("#subMain");
+			const loading = document.querySelector(".spinner-border");
+			const nfl = new nflApi();
+			const uiGenerator = new HTMLGenerator(select);
+			const nicknames = await nfl.getTeamNickNames();
+			let newPage = false
+			let athletes;
+			let pages = []; 
+			let pageIndex = 0;
+			let grid;
+			uiGenerator.createOptions(nicknames);
+
+			select.addEventListener("change", async function (e) {
+				loading.classList.remove('visually-hidden');
+				subMain.innerHTML = "";
+				uiGenerator.loading();
+				if(!newPage){
+					const nflNickName = e.target.value;
+					const teamID = await nfl.getTeamID(nflNickName);
+					athletes = await nfl.getPlayers(teamID, season);
+					pages = await uiGenerator.createPages(athletes.items);
+					grid = await uiGenerator.createGrid(pages)
+				}else{
+					grid = await uiGenerator.createGrid(pages)
+					newPage = false
+				}
+				subMain.appendChild(grid);
+				document.querySelectorAll('a').forEach(a => a.addEventListener(('click'), function(e){
+					newPage = true;
+					select.dispatchEvent(new Event('change'))
+				}));
+				loading.classList.add('visually-hidden');
+			});
+
+		})();
+	</script>
+</body>
+</html>

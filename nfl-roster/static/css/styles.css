@@ -1,0 +1,12 @@
+body {
+    background-image: url('https://wallpaperaccess.com/full/1298120.jpg');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+}
+
+.header {
+    color: #fff;
+    text-align: center;
+}
+
